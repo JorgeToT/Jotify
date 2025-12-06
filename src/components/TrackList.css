@@ -1,0 +1,160 @@
+.track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.track-list-header {
+  display: grid;
+  grid-template-columns: 40px 2fr 1.5fr 200px 80px 40px;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.track-list-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: 40px 2fr 1.5fr 200px 80px 40px;
+  gap: 16px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  align-items: center;
+  transition: background-color 0.2s;
+  cursor: default;
+}
+
+.track-row:hover {
+  background-color: var(--bg-hover);
+}
+
+.track-row.active {
+  background-color: var(--bg-tertiary);
+}
+
+.track-row:hover .track-index {
+  display: none;
+}
+
+.track-row:hover .track-play-btn {
+  display: flex;
+}
+
+.track-number {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.track-play-btn {
+  display: none;
+  position: absolute;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  padding: 4px;
+}
+
+.track-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.track-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  background-color: var(--bg-tertiary);
+  flex-shrink: 0;
+}
+
+.track-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.track-title {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.track-artist {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-album {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-quality {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quality-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--accent-primary), #1ed760);
+  color: var(--bg-primary);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+
+.quality-details {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.track-duration {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.track-more {
+  color: var(--text-secondary);
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.track-row:hover .track-more {
+  opacity: 1;
+}
+
+.track-more:hover {
+  color: var(--text-primary);
+}

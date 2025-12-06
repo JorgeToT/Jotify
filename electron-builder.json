@@ -1,0 +1,30 @@
+{
+  "build": {
+    "appId": "com.jotify.app",
+    "productName": "Jotify",
+    "copyright": "Copyright © 2025 Jorge",
+    "directories": {
+      "output": "out"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
