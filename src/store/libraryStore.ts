@@ -8,6 +8,8 @@ interface LibraryState {
   error: string | null
 
   // Actions
+  loadTracks: () => Promise<void>
+  loadPlaylists: () => Promise<void>
   setTracks: (tracks: Track[]) => void
   setPlaylists: (playlists: Playlist[]) => void
   addPlaylist: (playlist: Playlist) => void
@@ -22,6 +24,25 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   playlists: [],
   isLoading: false,
   error: null,
+
+  loadTracks: async () => {
+    set({ isLoading: true })
+    try {
+      const tracks = await window.electron.library.getTracks()
+      set({ tracks, isLoading: false })
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false })
+    }
+  },
+
+  loadPlaylists: async () => {
+    try {
+      const playlists = await window.electron.library.getPlaylists()
+      set({ playlists })
+    } catch (error) {
+      console.error('Error loading playlists:', error)
+    }
+  },
 
   setTracks: (tracks) => set({ tracks }),
   setPlaylists: (playlists) => set({ playlists }),
