@@ -44,6 +44,14 @@
   background-color: var(--bg-hover);
 }
 
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-2px);
+}
+
 .stat-number {
   font-size: 36px;
   font-weight: 700;
