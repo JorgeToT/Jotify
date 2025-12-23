@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react'
 import Sidebar from './Sidebar'
 import Player from './Player'
 import AnimeVisualizer from './AnimeVisualizer'
+import FullscreenVisualizer from './FullscreenVisualizer'
 import { X, Clock } from 'lucide-react'
 import './Layout.css'
 
@@ -20,6 +21,7 @@ const LOOP_OPTIONS = [
 
 export default function Layout({ children }: LayoutProps) {
   const [isAnimeMode, setIsAnimeMode] = useState(false)
+  const [isFullscreenMode, setIsFullscreenMode] = useState(false)
   const [showDurationModal, setShowDurationModal] = useState(false)
   const [loopDuration, setLoopDuration] = useState(0)
 
@@ -33,13 +35,20 @@ export default function Layout({ children }: LayoutProps) {
     setIsAnimeMode(true)
   }
 
+  const handleOpenFullscreenMode = () => {
+    setIsFullscreenMode(true)
+  }
+
   return (
     <div className="layout">
       <Sidebar />
       <main className="main-content">
         {children}
       </main>
-      <Player onOpenAnimeMode={handleOpenAnimeMode} />
+      <Player 
+        onOpenAnimeMode={handleOpenAnimeMode} 
+        onOpenFullscreenMode={handleOpenFullscreenMode}
+      />
       
       {/* Modal de selección de duración */}
       {showDurationModal && (
@@ -79,6 +88,11 @@ export default function Layout({ children }: LayoutProps) {
         isOpen={isAnimeMode} 
         onClose={() => setIsAnimeMode(false)}
         loopDuration={loopDuration}
+      />
+      
+      <FullscreenVisualizer
+        isOpen={isFullscreenMode}
+        onClose={() => setIsFullscreenMode(false)}
       />
     </div>
   )

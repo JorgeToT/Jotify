@@ -1,4 +1,4 @@
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Sparkles } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Sparkles, Maximize2 } from 'lucide-react'
 import { usePlayerStore } from '../store/playerStore'
 import { formatTime } from '../utils/formatTime'
 import { audioRef } from '../hooks/useAudioPlayer'
@@ -101,9 +101,10 @@ function PlayerCoverImage({ src, alt, trackId }: { src?: string; alt: string; tr
 
 interface PlayerProps {
   onOpenAnimeMode?: () => void
+  onOpenFullscreenMode?: () => void
 }
 
-export default function Player({ onOpenAnimeMode }: PlayerProps) {
+export default function Player({ onOpenAnimeMode, onOpenFullscreenMode }: PlayerProps) {
   const {
     currentTrack,
     isPlaying,
@@ -230,6 +231,14 @@ export default function Player({ onOpenAnimeMode }: PlayerProps) {
       </div>
 
       <div className="player-volume">
+        <button 
+          onClick={onOpenFullscreenMode} 
+          className={`control-btn fullscreen-mode-btn ${!currentTrack ? 'disabled' : ''}`}
+          disabled={!currentTrack}
+          title="Modo Pantalla Completa - Visualizador de música"
+        >
+          <Maximize2 size={20} />
+        </button>
         <button 
           onClick={onOpenAnimeMode} 
           className={`control-btn anime-mode-btn ${!currentTrack ? 'disabled' : ''}`}
