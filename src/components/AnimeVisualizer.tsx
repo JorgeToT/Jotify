@@ -7,14 +7,25 @@ import './AnimeVisualizer.css'
 
 // APIs de imágenes anime
 const ANIME_APIS = [
-  // 'https://api.waifu.pics/sfw/waifu',
-  // 'https://api.waifu.pics/sfw/dance',
-  // 'https://api.waifu.pics/sfw/neko',
+  'https://api.waifu.pics/sfw/waifu',
+  // 'https://api.waifu.pics/sfw/dance', // Puede devolver GIFs
+  'https://api.waifu.pics/sfw/neko',
   // 'https://api.waifu.pics/sfw/shinobu',
   // 'https://api.waifu.pics/sfw/megumin',
-  'https://api.waifu.pics/sfw/kill',
+  // 'https://api.waifu.pics/sfw/kill', // Puede devolver GIFs
   // 'https://api.waifu.pics/sfw/smile',
 ]
+
+// Función para verificar si una URL es una imagen (no GIF)
+const isStaticImage = (url: string): boolean => {
+  const lowercaseUrl = url.toLowerCase()
+  return !lowercaseUrl.endsWith('.gif') && 
+         (lowercaseUrl.endsWith('.jpg') || 
+          lowercaseUrl.endsWith('.jpeg') || 
+          lowercaseUrl.endsWith('.png') || 
+          lowercaseUrl.endsWith('.webp') ||
+          !lowercaseUrl.match(/\.(gif|mp4|webm)$/))
+}
 
 // Componente de imagen con manejo de rutas de archivo
 function AnimeCoverImage({ src, alt }: { src?: string; alt: string }) {
@@ -146,7 +157,7 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
 
   // Cambiar imagen cada 30 segundos
   useEffect(() => {
-    if (isOpen && imageCache.length > 0) {
+    if (isOpen && imageCache.length > 0 && !isLoadingImages) {
       imageIntervalRef.current = setInterval(() => {
         changeImage()
       }, 30000) // 30 segundos
@@ -179,21 +190,27 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
     setIsLoadingImages(true)
     const images: string[] = []
     
-    // Cargar 10 imágenes iniciales
-    for (let i = 0; i < 10; i++) {
+    // Cargar imágenes iniciales (intentar hasta tener 10 válidas)
+    let attempts = 0
+    const maxAttempts = 20
+    
+    while (images.length < 10 && attempts < maxAttempts) {
       try {
-        const apiUrl = ANIME_APIS[i % ANIME_APIS.length]
+        const apiUrl = ANIME_APIS[attempts % ANIME_APIS.length]
         const response = await fetch(apiUrl)
         const data = await response.json()
-        if (data.url) {
+        // Solo aceptar imágenes estáticas (no GIFs)
+        if (data.url && isStaticImage(data.url) && !images.includes(data.url)) {
           images.push(data.url)
         }
       } catch (error) {
         console.error('Error loading anime image:', error)
       }
+      attempts++
     }
     
     setImageCache(images)
+    setCurrentImageIndex(0)
     if (images.length > 0) {
       setCurrentImage(images[0])
       if (images.length > 1) {
@@ -208,36 +225,51 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
 
   const loadMoreImages = async (existingImages: string[]) => {
     const newImages = [...existingImages]
+    let attempts = 0
+    const maxAttempts = 40
     
-    for (let i = 0; i < 20; i++) {
+    // Intentar cargar hasta 20 imágenes válidas adicionales
+    while (newImages.length < existingImages.length + 20 && attempts < maxAttempts) {
       try {
         const apiUrl = ANIME_APIS[Math.floor(Math.random() * ANIME_APIS.length)]
         const response = await fetch(apiUrl)
         const data = await response.json()
-        if (data.url && !newImages.includes(data.url)) {
+        // Solo aceptar imágenes estáticas (no GIFs)
+        if (data.url && isStaticImage(data.url) && !newImages.includes(data.url)) {
           newImages.push(data.url)
         }
       } catch (error) {
         // Ignorar errores silenciosamente
       }
+      attempts++
     }
     
     setImageCache(newImages)
   }
 
-  const changeImage = () => {
-    if (imageCache.length < 2) return
+  const changeImage = useCallback(() => {
+    if (imageCache.length < 2 || isTransitioning) return
     
     setIsTransitioning(true)
     
-    setTimeout(() => {
-      const nextIndex = (currentImageIndex + 1) % imageCache.length
-      setCurrentImage(imageCache[nextIndex])
-      setCurrentImageIndex(nextIndex)
-      setNextImage(imageCache[(nextIndex + 1) % imageCache.length])
-      setIsTransitioning(false)
-    }, 1000) // Duración de la transición
-  }
+    // Usar callback en setCurrentImageIndex para evitar problemas de closure
+    setCurrentImageIndex(prevIndex => {
+      const nextIndex = (prevIndex + 1) % imageCache.length
+      
+      // Precargar la siguiente imagen
+      const imgToPreload = new Image()
+      imgToPreload.src = imageCache[(nextIndex + 1) % imageCache.length]
+      
+      // Actualizar imágenes después de un pequeño delay para la transición
+      setTimeout(() => {
+        setCurrentImage(imageCache[nextIndex])
+        setNextImage(imageCache[(nextIndex + 1) % imageCache.length])
+        setIsTransitioning(false)
+      }, 500)
+      
+      return nextIndex
+    })
+  }, [imageCache, isTransitioning])
 
   const handleSkipImage = () => {
     changeImage()
