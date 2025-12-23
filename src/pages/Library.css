@@ -8,6 +8,99 @@
   margin-bottom: 24px;
 }
 
+.view-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--bg-tertiary);
+  padding-bottom: 16px;
+}
+
+.view-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-tab:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.view-tab.active {
+  background-color: var(--accent-primary);
+  color: #000;
+  font-weight: 500;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+}
+
+.back-button:hover {
+  color: var(--text-primary);
+}
+
+.sub-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.grid-card {
+  background-color: var(--bg-tertiary);
+  padding: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.grid-card:hover {
+  background-color: var(--bg-hover);
+  transform: translateY(-4px);
+}
+
+.grid-card-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.grid-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grid-card-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
