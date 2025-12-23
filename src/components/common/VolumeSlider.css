@@ -1,0 +1,160 @@
+.volume-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Button */
+.volume-slider__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.volume-slider__btn:hover {
+  color: var(--text-primary);
+}
+
+/* Slider bar */
+.volume-slider__bar {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.volume-slider__bar::-webkit-slider-runnable-track {
+  border-radius: 2px;
+  background: linear-gradient(to right, 
+    var(--accent-primary, #1db954) 0%, 
+    var(--accent-primary, #1db954) var(--volume, 100%), 
+    rgba(255, 255, 255, 0.3) var(--volume, 100%), 
+    rgba(255, 255, 255, 0.3) 100%
+  );
+}
+
+.volume-slider__bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.volume-slider__bar::-moz-range-track {
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.volume-slider__bar::-moz-range-progress {
+  border-radius: 2px;
+  background: var(--accent-primary, #1db954);
+}
+
+.volume-slider__bar::-moz-range-thumb {
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Size variants */
+.volume-slider--sm .volume-slider__bar {
+  width: 60px;
+  height: 3px;
+}
+
+.volume-slider--sm .volume-slider__bar::-webkit-slider-runnable-track {
+  height: 3px;
+}
+
+.volume-slider--sm .volume-slider__bar::-webkit-slider-thumb {
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+}
+
+.volume-slider--sm .volume-slider__bar::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+}
+
+.volume-slider--md .volume-slider__bar {
+  width: 100px;
+  height: 4px;
+}
+
+.volume-slider--md .volume-slider__bar::-webkit-slider-runnable-track {
+  height: 4px;
+}
+
+.volume-slider--md .volume-slider__bar::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+}
+
+.volume-slider--md .volume-slider__bar::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+}
+
+.volume-slider--lg .volume-slider__bar {
+  width: 120px;
+  height: 5px;
+}
+
+.volume-slider--lg .volume-slider__bar::-webkit-slider-runnable-track {
+  height: 5px;
+}
+
+.volume-slider--lg .volume-slider__bar::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -4.5px;
+}
+
+.volume-slider--lg .volume-slider__bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+}
+
+/* Variant: compact */
+.volume-slider--compact {
+  gap: 6px;
+}
+
+.volume-slider--compact .volume-slider__bar {
+  width: 70px;
+}
+
+/* Variant: visualizer (for fullscreen modes) */
+.volume-slider--visualizer {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.volume-slider--visualizer .volume-slider__btn {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.volume-slider--visualizer .volume-slider__btn:hover {
+  color: white;
+}
+
+/* Position override for fullscreen visualizer */
+.fs-volume.volume-slider {
+  position: absolute;
+  right: 48px;
+  bottom: 60px;
+}

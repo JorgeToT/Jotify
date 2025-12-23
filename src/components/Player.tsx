@@ -1,8 +1,8 @@
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Sparkles, Maximize2 } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Repeat, Repeat1, Shuffle, Sparkles, Maximize2 } from 'lucide-react'
 import { usePlayerStore } from '../store/playerStore'
-import { formatTime } from '../utils/formatTime'
 import { audioRef } from '../hooks/useAudioPlayer'
 import { useState, useEffect } from 'react'
+import { VolumeSlider, ProgressBar } from './common'
 import './Player.css'
 
 // Cache de imágenes de anime para el player
@@ -124,16 +124,11 @@ export default function Player({ onOpenAnimeMode, onOpenFullscreenMode }: Player
     seek,
   } = usePlayerStore()
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value)
+  const handleSeek = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time
       seek(time)
     }
-  }
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(parseFloat(e.target.value))
   }
 
   const handleRepeatClick = () => {
@@ -214,20 +209,13 @@ export default function Player({ onOpenAnimeMode, onOpenFullscreenMode }: Player
           </button>
         </div>
 
-        <div className="player-progress">
-          <span className="time">{formatTime(currentTime)}</span>
-          <input
-            type="range"
-            className="progress-bar"
-            min="0"
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleSeek}
-            disabled={!currentTrack}
-            style={{ '--progress': `${duration ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
-          />
-          <span className="time">{formatTime(duration)}</span>
-        </div>
+        <ProgressBar
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={handleSeek}
+          disabled={!currentTrack}
+          className="player-progress"
+        />
       </div>
 
       <div className="player-volume">
@@ -247,18 +235,12 @@ export default function Player({ onOpenAnimeMode, onOpenFullscreenMode }: Player
         >
           <Sparkles size={20} />
         </button>
-        <button onClick={toggleMute} className="control-btn">
-          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-        </button>
-        <input
-          type="range"
-          className="volume-bar"
-          min="0"
-          max="1"
-          step="0.01"
-          value={isMuted ? 0 : volume}
-          onChange={handleVolumeChange}
-          style={{ '--volume': `${(isMuted ? 0 : volume) * 100}%` } as React.CSSProperties}
+        <VolumeSlider
+          volume={volume}
+          isMuted={isMuted}
+          onVolumeChange={setVolume}
+          onToggleMute={toggleMute}
+          size="md"
         />
       </div>
     </div>

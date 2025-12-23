@@ -1,64 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { X, Minimize2, Maximize2, SkipForward, SkipBack, Pause, Play, Volume2, VolumeX, Repeat, Repeat1, Shuffle, ListMusic, ChevronRight } from 'lucide-react'
+import { X, Minimize2, Maximize2, SkipForward, SkipBack, Pause, Play, Repeat, Repeat1, Shuffle, ListMusic, ChevronRight } from 'lucide-react'
 import { usePlayerStore } from '../store/playerStore'
-import { formatTime } from '../utils/formatTime'
 import { audioRef } from '../hooks/useAudioPlayer'
+import { CoverImage, VolumeSlider, ProgressBar } from './common'
 import './FullscreenVisualizer.css'
-
-// Convertir ruta de archivo a local-file:// URL
-function toFileUrl(filePath: string): string {
-  const normalizedPath = filePath.replace(/\\/g, '/')
-  return `local-file://${encodeURIComponent(normalizedPath)}`
-}
-
-// Componente de imagen con manejo de rutas de archivo
-function CoverImage({ src, alt, className }: { src?: string; alt: string; className?: string }) {
-  const [imgSrc, setImgSrc] = useState<string | null>(null)
-  const [hasError, setHasError] = useState(false)
-
-  useEffect(() => {
-    setHasError(false)
-    
-    if (!src) {
-      setImgSrc(null)
-      return
-    }
-
-    if (src.startsWith('http://') || src.startsWith('https://')) {
-      setImgSrc(src)
-      return
-    }
-
-    if (src.startsWith('data:image/') && src.length > 100) {
-      setImgSrc(src)
-      return
-    }
-
-    if (src.includes(':\\') || src.startsWith('/')) {
-      setImgSrc(toFileUrl(src))
-      return
-    }
-
-    setImgSrc(null)
-  }, [src])
-
-  if (hasError || !imgSrc) {
-    return (
-      <div className={`cover-fallback ${className || ''}`}>
-        <span>🎵</span>
-      </div>
-    )
-  }
-
-  return (
-    <img 
-      src={imgSrc} 
-      alt={alt} 
-      className={className}
-      onError={() => setHasError(true)}
-    />
-  )
-}
 
 interface FullscreenVisualizerProps {
   isOpen: boolean
@@ -149,15 +94,10 @@ export default function FullscreenVisualizer({ isOpen, onClose }: FullscreenVisu
   }, [])
 
   // Manejar seek en la barra de progreso
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value)
+  const handleSeek = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time
     }
-  }
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(parseFloat(e.target.value))
   }
 
   const handleRepeatClick = () => {
@@ -307,19 +247,14 @@ export default function FullscreenVisualizer({ isOpen, onClose }: FullscreenVisu
         {/* Controles de reproducción */}
         <div className="fs-controls">
           {/* Barra de progreso */}
-          <div className="fs-progress">
-            <span className="fs-time">{formatTime(currentTime)}</span>
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              value={currentTime}
-              onChange={handleSeek}
-              className="fs-progress-bar"
-              style={{ '--progress': `${duration ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
-            />
-            <span className="fs-time">{formatTime(duration)}</span>
-          </div>
+          <ProgressBar
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={handleSeek}
+            variant="visualizer"
+            size="lg"
+            className="fs-progress"
+          />
 
           {/* Botones de control */}
           <div className="fs-control-buttons">
@@ -365,21 +300,15 @@ export default function FullscreenVisualizer({ isOpen, onClose }: FullscreenVisu
           </div>
 
           {/* Volumen */}
-          <div className="fs-volume">
-            <button onClick={toggleMute} className="fs-control-btn">
-              {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
-            </button>
-            <input
-              type="range"
-              className="fs-volume-bar"
-              min="0"
-              max="1"
-              step="0.01"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              style={{ '--volume': `${(isMuted ? 0 : volume) * 100}%` } as React.CSSProperties}
-            />
-          </div>
+          <VolumeSlider
+            volume={volume}
+            isMuted={isMuted}
+            onVolumeChange={setVolume}
+            onToggleMute={toggleMute}
+            variant="visualizer"
+            size="md"
+            className="fs-volume"
+          />
         </div>
       </div>
 

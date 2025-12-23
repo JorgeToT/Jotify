@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { X, Minimize2, Maximize2, Pause, Play, Volume2, VolumeX, RefreshCw, Clock, Repeat } from 'lucide-react'
+import { X, Minimize2, Maximize2, Pause, Play, RefreshCw, Clock, Repeat } from 'lucide-react'
 import { usePlayerStore } from '../store/playerStore'
-import { formatTime } from '../utils/formatTime'
 import { audioRef } from '../hooks/useAudioPlayer'
+import { CoverImage, VolumeSlider, ProgressBar } from './common'
 import './AnimeVisualizer.css'
 
 // Función para mezclar un array aleatoriamente (Fisher-Yates shuffle)
@@ -42,62 +42,6 @@ const toImageUrl = (src: string): string => {
   }
   
   return src
-}
-
-// Componente de imagen con manejo de rutas de archivo
-function AnimeCoverImage({ src, alt }: { src?: string; alt: string }) {
-  const [imgSrc, setImgSrc] = useState<string | null>(null)
-  const [hasError, setHasError] = useState(false)
-
-  useEffect(() => {
-    setHasError(false)
-    
-    if (!src) {
-      setImgSrc(null)
-      return
-    }
-
-    // Si es URL HTTP, usar directamente
-    if (src.startsWith('http://') || src.startsWith('https://')) {
-      setImgSrc(src)
-      return
-    }
-
-    // Si es base64 válido
-    if (src.startsWith('data:image/') && src.length > 100) {
-      setImgSrc(src)
-      return
-    }
-
-    // Si es ruta de archivo local (como D:\Música\song.jpg)
-    if (src.includes(':\\') || src.startsWith('/')) {
-      // Usar protocolo local-file:// registrado en Electron
-      const normalizedPath = src.replace(/\\/g, '/')
-      const fileUrl = `local-file://${encodeURIComponent(normalizedPath)}`
-      setImgSrc(fileUrl)
-      return
-    }
-
-    setImgSrc(null)
-  }, [src])
-
-  if (hasError || !imgSrc) {
-    // Mostrar icono de música como fallback
-    return (
-      <div className="anime-cover anime-cover-fallback">
-        🎵
-      </div>
-    )
-  }
-
-  return (
-    <img 
-      src={imgSrc} 
-      alt={alt} 
-      className="anime-cover"
-      onError={() => setHasError(true)}
-    />
-  )
 }
 
 interface AnimeVisualizerProps {
@@ -547,16 +491,10 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
   }, [isOpen, isPlaying, volume, changeImage])
 
   // Manejar seek en la barra de progreso
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value)
+  const handleSeek = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time
     }
-  }
-
-  // Manejar cambio de volumen
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(parseFloat(e.target.value))
   }
 
   const formatElapsedTime = (seconds: number): string => {
@@ -633,7 +571,12 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
 
         {/* Track info */}
         <div className="anime-track-info">
-          <AnimeCoverImage src={currentTrack?.coverArt} alt={currentTrack?.album || ''} />
+          <CoverImage 
+            src={currentTrack?.coverArt} 
+            alt={currentTrack?.album || ''} 
+            className="anime-cover"
+            size="lg"
+          />
           <div className="anime-track-text">
             <h2>{currentTrack?.title || 'Sin canción'}</h2>
             <p>{currentTrack?.artist || 'Artista desconocido'}</p>
@@ -641,19 +584,14 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
         </div>
 
         {/* Progress bar */}
-        <div className="anime-progress">
-          <span>{formatTime(currentTime)}</span>
-          <input
-            type="range"
-            min="0"
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleSeek}
-            className="anime-progress-bar"
-            style={{ '--progress': `${duration ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
-          />
-          <span>{formatTime(duration)}</span>
-        </div>
+        <ProgressBar
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={handleSeek}
+          variant="visualizer"
+          size="lg"
+          className="anime-progress"
+        />
 
         {/* Playback controls */}
         <div className="anime-playback">
@@ -672,21 +610,14 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
             <span>Cambiar imagen</span>
           </button>
           
-          <div className="anime-volume">
-            <button onClick={toggleMute} className="anime-volume-btn" title={isMuted ? 'Activar sonido' : 'Silenciar'}>
-              {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            </button>
-            <input
-              type="range"
-              className="anime-volume-bar"
-              min="0"
-              max="1"
-              step="0.01"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              style={{ '--volume': `${(isMuted ? 0 : volume) * 100}%` } as React.CSSProperties}
-            />
-          </div>
+          <VolumeSlider
+            volume={volume}
+            isMuted={isMuted}
+            onVolumeChange={setVolume}
+            onToggleMute={toggleMute}
+            variant="visualizer"
+            size="sm"
+          />
         </div>
       </div>
 
