@@ -11,7 +11,7 @@ import { useLibraryStore } from './store/libraryStore'
 import { useAudioPlayer } from './hooks/useAudioPlayer'
 
 function App() {
-  const { setTracks, setPlaylists } = useLibraryStore()
+  const { setTracks, setPlaylists, loadTracks, loadPlaylists } = useLibraryStore()
   useAudioPlayer()
 
   useEffect(() => {
@@ -30,7 +30,19 @@ function App() {
     }
 
     loadData()
-  }, [])
+
+    // Escuchar actualizaciones de la biblioteca (cuando se descarga una canción)
+    window.electron.library.onUpdated(() => {
+      console.log('[App] Biblioteca actualizada, recargando...')
+      loadTracks()
+      loadPlaylists()
+    })
+
+    // Limpiar listener al desmontar
+    return () => {
+      window.electron.library.removeUpdatedListener()
+    }
+  }, [setTracks, setPlaylists, loadTracks, loadPlaylists])
 
   return (
     <Router>
