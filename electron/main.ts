@@ -10,15 +10,13 @@ import { parseFile } from 'music-metadata'
 import fs from 'fs'
 
 // Determinar el directorio correcto para recursos
-// En desarrollo: electron/ folder
+// En desarrollo: dist/electron/ (compilado por vite-plugin-electron)
 // En producción: dentro del asar en dist/electron/
 const isDev = process.env.NODE_ENV === 'development'
 const getResourcePath = () => {
-  if (isDev) {
-    return path.join(app.getAppPath(), 'electron')
-  }
-  // En producción, app.getAppPath() apunta a resources/app.asar
-  // y main.js está en dist/electron/ dentro del asar
+  // Tanto en desarrollo como en producción, los archivos compilados están en dist/electron/
+  // En desarrollo: vite-plugin-electron compila a dist/electron/
+  // En producción: app.getAppPath() apunta a resources/app.asar
   return path.join(app.getAppPath(), 'dist', 'electron')
 }
 

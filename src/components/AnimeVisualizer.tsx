@@ -95,7 +95,7 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [imageCache, setImageCache] = useState<string[]>([])
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [, setCurrentImageIndex] = useState(0)
   const [isLoadingImages, setIsLoadingImages] = useState(true)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showControls, setShowControls] = useState(true)
@@ -178,11 +178,11 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
       clearTimeout(controlsTimeoutRef.current)
     }
     
-    // controlsTimeoutRef.current = setTimeout(() => {
-    //   if (isPlaying) {
-    //     setShowControls(false)
-    //   }
-    // }, 3000)
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isPlaying) {
+        setShowControls(false)
+      }
+    }, 3000)
   }, [isPlaying])
 
   // Cargar imágenes de las APIs
