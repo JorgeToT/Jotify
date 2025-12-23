@@ -1,4 +1,4 @@
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Sparkles, Music } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, Shuffle, Sparkles } from 'lucide-react'
 import { usePlayerStore } from '../store/playerStore'
 import { formatTime } from '../utils/formatTime'
 import { audioRef } from '../hooks/useAudioPlayer'

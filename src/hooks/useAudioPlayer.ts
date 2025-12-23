@@ -21,7 +21,6 @@ export const useAudioPlayer = () => {
     isPlaying,
     volume,
     isMuted,
-    isAnimeMode,
     setIsPlaying,
     setCurrentTime,
     setDuration,

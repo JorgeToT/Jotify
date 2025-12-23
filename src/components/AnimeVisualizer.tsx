@@ -100,7 +100,6 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
     isPlaying,
     currentTime,
     duration,
-    volume,
     isMuted,
     setIsPlaying,
     toggleMute,

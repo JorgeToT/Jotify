@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useLibraryStore } from '../store/libraryStore'
-import { usePlayerStore } from '../store/playerStore'
 import TrackList from '../components/TrackList'
 import './Library.css'
 
@@ -9,7 +8,6 @@ type ViewType = 'songs' | 'artists' | 'albums' | 'playlists'
 
 export default function Library() {
   const { tracks, playlists, isLoading } = useLibraryStore()
-  const { setCurrentTrack, setPlaylist, setIsPlaying } = usePlayerStore()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   
@@ -167,7 +165,7 @@ export default function Library() {
               >
                 <div className="grid-card-icon">🎵</div>
                 <div className="grid-card-title">{playlist.name}</div>
-                <div className="grid-card-subtitle">{playlist.trackIds.length} canciones</div>
+                <div className="grid-card-subtitle">{playlist.tracks?.length ?? 0} canciones</div>
               </div>
             ))}
           </div>

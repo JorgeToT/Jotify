@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react'
 import Sidebar from './Sidebar'
 import Player from './Player'
 import AnimeVisualizer from './AnimeVisualizer'
-import { X, Clock, Infinity } from 'lucide-react'
+import { X, Clock } from 'lucide-react'
 import './Layout.css'
 
 interface LayoutProps {

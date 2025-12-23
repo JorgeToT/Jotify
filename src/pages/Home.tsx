@@ -106,7 +106,7 @@ export default function Home() {
   const artistCount = new Set(tracks.map(t => t.artist)).size
   const albumCount = new Set(tracks.map(t => t.album)).size
 
-  const handlePlayTrack = (track: typeof tracks[0], index: number) => {
+  const handlePlayTrack = (_track: typeof tracks[0], index: number) => {
     setQueue(recentTracks, index)
     setIsPlaying(true)
   }

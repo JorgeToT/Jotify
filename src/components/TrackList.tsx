@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Track } from '../types/electron'
-import { Play, MoreVertical, ListPlus, FolderOpen, Trash2, Info, Music, Search, Loader, Edit3, Image } from 'lucide-react'
+import { Play, MoreVertical, ListPlus, FolderOpen, Trash2, Info, Search, Loader, Edit3, Image } from 'lucide-react'
 import { usePlayerStore } from '../store/playerStore'
 import { useLibraryStore } from '../store/libraryStore'
 import { formatTime } from '../utils/formatTime'
@@ -255,7 +255,7 @@ export default function TrackList({ tracks }: TrackListProps) {
       const result = await window.electron.searchMetadata(track.artist, searchTitle)
       
       if (result.success && result.data) {
-        const { title, artist, album, year } = result.data
+        const { title, artist, album } = result.data
         
         // Actualizar el track con la nueva metadata
         const updateResult = await window.electron.updateTrack(track.id, {
