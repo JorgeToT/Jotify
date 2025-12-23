@@ -575,7 +575,6 @@ export default function AnimeVisualizer({ isOpen, onClose, loopDuration = 0 }: A
             src={currentTrack?.coverArt} 
             alt={currentTrack?.album || ''} 
             className="anime-cover"
-            size="lg"
           />
           <div className="anime-track-text">
             <h2>{currentTrack?.title || 'Sin canción'}</h2>

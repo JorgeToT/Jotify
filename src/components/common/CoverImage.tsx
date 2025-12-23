@@ -21,7 +21,7 @@ export default function CoverImage({
   src, 
   alt, 
   className = '',
-  size = 'md',
+  size,
   fallbackIcon = '🎵',
   fallbackUrl,
   onError
@@ -63,7 +63,7 @@ export default function CoverImage({
     onError?.()
   }
 
-  const sizeClass = `cover-image--${size}`
+  const sizeClass = size ? `cover-image--${size}` : ''
 
   // Mostrar fallback si hay error o no hay imagen
   if (hasError || !imgSrc) {
