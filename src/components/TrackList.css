@@ -144,6 +144,10 @@
   text-align: center;
 }
 
+.track-menu-container {
+  position: relative;
+}
+
 .track-more {
   color: var(--text-secondary);
   padding: 8px;
@@ -158,3 +162,239 @@
 .track-more:hover {
   color: var(--text-primary);
 }
+
+/* Context Menu */
+.track-context-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 200px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-size: 14px;
+  position: relative;
+}
+
+.menu-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.menu-item.disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.menu-item.danger {
+  color: #f44336;
+}
+
+.menu-item.danger:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.menu-item.has-submenu::after {
+  content: '›';
+  margin-left: auto;
+  font-size: 18px;
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 8px 0;
+}
+
+/* Submenu */
+.submenu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Info Modal */
+.info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.info-modal {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.info-modal h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  gap: 16px;
+}
+
+.info-row.full-width {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  min-width: 80px;
+}
+
+.info-value {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.info-value.path {
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.info-close-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  background: var(--accent-color);
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.info-close-btn:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+/* Edit Modal */
+.info-modal.edit-modal {
+  max-width: 450px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-field label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.edit-field input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.edit-field input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.edit-field input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.edit-cancel-btn,
+.edit-save-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+  border: none;
+  font-size: 14px;
+}
+
+.edit-cancel-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.edit-save-btn {
+  background: var(--accent-color);
+  color: #000;
+}
+
+.edit-cancel-btn:hover,
+.edit-save-btn:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+.edit-cancel-btn:disabled,
+.edit-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
