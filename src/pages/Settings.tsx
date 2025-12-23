@@ -1,7 +1,44 @@
 import { useState, useEffect } from 'react'
-import { Settings as SettingsIcon, Music, ExternalLink, Check, X, Image, Loader } from 'lucide-react'
+import { Settings as SettingsIcon, Music, ExternalLink, Check, X, Image, Loader, Sparkles, Plus, Folder } from 'lucide-react'
 import { useLibraryStore } from '../store/libraryStore'
 import './Settings.css'
+
+// Fuentes de imágenes disponibles
+const IMAGE_SOURCES = [
+  { id: 'waifupics', name: 'Waifu.pics', description: 'Categorías predefinidas de anime' },
+  { id: 'safebooru', name: 'Safebooru', description: 'Búsqueda por personajes específicos (tags)' },
+  { id: 'nekosbest', name: 'Nekos.best', description: 'Imágenes y GIFs de nekos' },
+  { id: 'localfolder', name: 'Carpeta local', description: 'Usa tus propios fondos de pantalla' },
+]
+
+// Categorías disponibles de la API waifu.pics
+const WAIFU_PICS_CATEGORIES = [
+  { id: 'waifu', name: 'Waifu', description: 'Personajes femeninos anime' },
+  { id: 'neko', name: 'Neko', description: 'Chicas gato' },
+  { id: 'shinobu', name: 'Shinobu', description: 'Shinobu' },
+  { id: 'megumin', name: 'Megumin', description: 'Megumin' },
+  { id: 'happy', name: 'Happy', description: 'Felicidad' },
+  { id: 'smile', name: 'Smile', description: 'Sonrisas' },
+  { id: 'wave', name: 'Wave', description: 'Saludos' },
+  { id: 'wink', name: 'Wink', description: 'Guiños' },
+  { id: 'blush', name: 'Blush', description: 'Sonrojados' },
+]
+
+// Categorías de Nekos.best
+const NEKOS_BEST_CATEGORIES = [
+  { id: 'neko', name: 'Neko', description: 'Chicas gato' },
+  { id: 'kitsune', name: 'Kitsune', description: 'Chicas zorro' },
+  { id: 'waifu', name: 'Waifu', description: 'Personajes femeninos' },
+  { id: 'husbando', name: 'Husbando', description: 'Personajes masculinos' },
+]
+
+// Personajes populares sugeridos para Safebooru
+const SUGGESTED_CHARACTERS = [
+  'hatsune_miku', 'rem_(re:zero)', 'zero_two_(darling_in_the_franxx)',
+  'asuna_(sao)', 'nezuko_kamado', 'miku_nakano', 'chika_fujiwara',
+  'yor_briar', 'makima_(chainsaw_man)', 'power_(chainsaw_man)',
+  'frieren', 'anya_(spy_x_family)', 'ai_hoshino', 'bocchi_gotou',
+]
 
 export default function Settings() {
   const [lastfmUsername, setLastfmUsername] = useState<string | null>(null)
@@ -11,6 +48,15 @@ export default function Settings() {
   const [scrobbleEnabled, setScrobbleEnabled] = useState(true)
   const [isFixingCovers, setIsFixingCovers] = useState(false)
   const [fixCoversResult, setFixCoversResult] = useState<{ fixed: number; failed: number; total: number } | null>(null)
+  
+  // Anime Visualizer settings
+  const [animeCategories, setAnimeCategories] = useState<string[]>(['waifu', 'neko'])
+  const [allowGifs, setAllowGifs] = useState(false)
+  const [imageSource, setImageSource] = useState<string>('waifupics')
+  const [safebooruTags, setSafebooruTags] = useState<string[]>([])
+  const [newTag, setNewTag] = useState('')
+  const [nekosCategories, setNekosCategories] = useState<string[]>(['neko'])
+  const [localFolderPath, setLocalFolderPath] = useState<string>('')
   
   const { loadTracks } = useLibraryStore()
 
@@ -30,6 +76,16 @@ export default function Settings() {
       const settings = await window.electron.settings.get()
       setDownloadPath(settings.downloadPath || '')
       setScrobbleEnabled(settings.lastfm?.scrobbleEnabled !== false)
+      
+      // Load anime visualizer settings
+      if (settings.animeVisualizer) {
+        setAnimeCategories(settings.animeVisualizer.categories || ['waifu', 'neko'])
+        setAllowGifs(settings.animeVisualizer.allowGifs || false)
+        setImageSource(settings.animeVisualizer.imageSource || 'waifupics')
+        setSafebooruTags(settings.animeVisualizer.safebooruTags || [])
+        setNekosCategories(settings.animeVisualizer.nekosCategories || ['neko'])
+        setLocalFolderPath(settings.animeVisualizer.localFolderPath || '')
+      }
     } catch (error) {
       console.error('Error loading settings:', error)
     }
@@ -124,6 +180,170 @@ export default function Settings() {
     } finally {
       setIsFixingCovers(false)
     }
+  }
+
+  const handleAnimeCategoryToggle = async (categoryId: string) => {
+    const newCategories = animeCategories.includes(categoryId)
+      ? animeCategories.filter(c => c !== categoryId)
+      : [...animeCategories, categoryId]
+    
+    // Ensure at least one category is selected
+    if (newCategories.length === 0) {
+      return
+    }
+    
+    setAnimeCategories(newCategories)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        categories: newCategories,
+      }
+    })
+  }
+
+  const handleAllowGifsToggle = async () => {
+    const newValue = !allowGifs
+    setAllowGifs(newValue)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        allowGifs: newValue,
+      }
+    })
+  }
+
+  const handleSelectAllCategories = async () => {
+    const allCategories = WAIFU_PICS_CATEGORIES.map(c => c.id)
+    setAnimeCategories(allCategories)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        categories: allCategories,
+      }
+    })
+  }
+
+  const handleDeselectAllCategories = async () => {
+    // Keep at least one category
+    const defaultCategory = ['waifu']
+    setAnimeCategories(defaultCategory)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        categories: defaultCategory,
+      }
+    })
+  }
+
+  const handleImageSourceChange = async (source: string) => {
+    setImageSource(source)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        imageSource: source,
+      }
+    })
+  }
+
+  const handleSelectLocalFolder = async () => {
+    const result = await window.electron.anime.selectLocalFolder()
+    if (result.success && result.path) {
+      setLocalFolderPath(result.path)
+      
+      const settings = await window.electron.settings.get()
+      await window.electron.settings.save({
+        ...settings,
+        animeVisualizer: {
+          ...settings.animeVisualizer,
+          localFolderPath: result.path,
+        }
+      })
+    }
+  }
+
+  const handleAddSafebooruTag = async () => {
+    const tag = newTag.trim().toLowerCase().replace(/\s+/g, '_')
+    if (!tag || safebooruTags.includes(tag)) {
+      setNewTag('')
+      return
+    }
+    
+    const newTags = [...safebooruTags, tag]
+    setSafebooruTags(newTags)
+    setNewTag('')
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        safebooruTags: newTags,
+      }
+    })
+  }
+
+  const handleRemoveSafebooruTag = async (tag: string) => {
+    const newTags = safebooruTags.filter(t => t !== tag)
+    setSafebooruTags(newTags)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        safebooruTags: newTags,
+      }
+    })
+  }
+
+  const handleAddSuggestedCharacter = async (character: string) => {
+    if (safebooruTags.includes(character)) return
+    
+    const newTags = [...safebooruTags, character]
+    setSafebooruTags(newTags)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        safebooruTags: newTags,
+      }
+    })
+  }
+
+  const handleNekosCategory = async (categoryId: string) => {
+    const newCategories = nekosCategories.includes(categoryId)
+      ? nekosCategories.filter(c => c !== categoryId)
+      : [...nekosCategories, categoryId]
+    
+    if (newCategories.length === 0) return
+    
+    setNekosCategories(newCategories)
+    
+    const settings = await window.electron.settings.get()
+    await window.electron.settings.save({
+      ...settings,
+      animeVisualizer: {
+        ...settings.animeVisualizer,
+        nekosCategories: newCategories,
+      }
+    })
   }
 
   return (
@@ -336,6 +556,212 @@ export default function Settings() {
             carátulas de MusicBrainz. Si una canción no tiene carátula disponible, se mostrará 
             una imagen de anime como fallback.
           </p>
+        </div>
+      </section>
+
+      {/* Anime Visualizer Section */}
+      <section className="settings-section">
+        <div className="section-header">
+          <h2>
+            <Sparkles size={24} />
+            Anime Visualizer
+          </h2>
+          <p className="section-description">
+            Configura las imágenes que se muestran en el modo visualizador anime.
+          </p>
+        </div>
+
+        <div className="setting-item">
+          <label>
+            <input
+              type="checkbox"
+              checked={allowGifs}
+              onChange={handleAllowGifsToggle}
+            />
+            <span>Permitir GIFs animados</span>
+          </label>
+          <p className="setting-help">
+            Si está desactivado, solo se mostrarán imágenes estáticas (JPG, PNG, WebP).
+          </p>
+        </div>
+
+        <div className="setting-item">
+          <label>Fuente de imágenes</label>
+          <div className="image-source-selector">
+            {IMAGE_SOURCES.map(source => (
+              <button
+                key={source.id}
+                className={`source-btn ${imageSource === source.id ? 'active' : ''}`}
+                onClick={() => handleImageSourceChange(source.id)}
+              >
+                <span className="source-name">{source.name}</span>
+                <span className="source-desc">{source.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Waifu.pics categories */}
+        {imageSource === 'waifupics' && (
+          <div className="setting-item">
+            <label>Categorías de Waifu.pics</label>
+            <div className="category-actions">
+              <button onClick={handleSelectAllCategories} className="btn-small">
+                Seleccionar todas
+              </button>
+              <button onClick={handleDeselectAllCategories} className="btn-small">
+                Deseleccionar todas
+              </button>
+            </div>
+            <div className="anime-categories-grid">
+              {WAIFU_PICS_CATEGORIES.map(category => (
+                <label 
+                  key={category.id} 
+                  className={`category-checkbox ${animeCategories.includes(category.id) ? 'selected' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={animeCategories.includes(category.id)}
+                    onChange={() => handleAnimeCategoryToggle(category.id)}
+                  />
+                  <div className="category-info">
+                    <span className="category-name">{category.name}</span>
+                    <span className="category-desc">{category.description}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Safebooru tags */}
+        {imageSource === 'safebooru' && (
+          <div className="setting-item">
+            <label>Personajes / Tags de Safebooru</label>
+            <p className="setting-help" style={{ marginLeft: 0, marginBottom: 12 }}>
+              Busca imágenes de personajes específicos. Usa el formato: nombre_apellido o nombre_(serie).
+              <br />
+              Ejemplos: hatsune_miku, rem_(re:zero), zero_two_(darling_in_the_franxx)
+            </p>
+            
+            <div className="tag-input-container">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddSafebooruTag()}
+                placeholder="Escribe un personaje o tag..."
+                className="tag-input"
+              />
+              <button onClick={handleAddSafebooruTag} className="btn-small">
+                <Plus size={16} />
+                Agregar
+              </button>
+            </div>
+
+            {safebooruTags.length > 0 && (
+              <div className="tags-list">
+                {safebooruTags.map(tag => (
+                  <span key={tag} className="tag-chip">
+                    {tag.replace(/_/g, ' ')}
+                    <button onClick={() => handleRemoveSafebooruTag(tag)} className="tag-remove">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="suggested-characters">
+              <label>Personajes sugeridos:</label>
+              <div className="suggested-list">
+                {SUGGESTED_CHARACTERS.filter(c => !safebooruTags.includes(c)).slice(0, 8).map(character => (
+                  <button
+                    key={character}
+                    className="suggested-chip"
+                    onClick={() => handleAddSuggestedCharacter(character)}
+                  >
+                    <Plus size={12} />
+                    {character.replace(/_/g, ' ').replace(/\(.*?\)/g, '').trim()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="info-box" style={{ marginTop: 16 }}>
+              <p><strong>💡 Tip:</strong> Puedes buscar cualquier personaje en <button 
+                onClick={() => window.electron.openExternal('https://safebooru.org/index.php?page=tags&s=list')}
+                className="link-button"
+                style={{ display: 'inline' }}
+              >
+                Safebooru Tags
+                <ExternalLink size={12} />
+              </button> y copiar el tag exacto.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Nekos.best categories */}
+        {imageSource === 'nekosbest' && (
+          <div className="setting-item">
+            <label>Categorías de Nekos.best</label>
+            <div className="anime-categories-grid">
+              {NEKOS_BEST_CATEGORIES.map(category => (
+                <label 
+                  key={category.id} 
+                  className={`category-checkbox ${nekosCategories.includes(category.id) ? 'selected' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={nekosCategories.includes(category.id)}
+                    onChange={() => handleNekosCategory(category.id)}
+                  />
+                  <div className="category-info">
+                    <span className="category-name">{category.name}</span>
+                    <span className="category-desc">{category.description}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Local folder */}
+        {imageSource === 'localfolder' && (
+          <div className="setting-item">
+            <label>Carpeta de fondos de pantalla</label>
+            <p className="setting-help">
+              Selecciona una carpeta con tus imágenes favoritas (JPG, PNG, WebP, GIF).
+            </p>
+            <div className="folder-selector">
+              <input 
+                type="text" 
+                value={localFolderPath} 
+                readOnly 
+                placeholder="Ninguna carpeta seleccionada"
+                className="folder-path-input"
+              />
+              <button onClick={handleSelectLocalFolder} className="btn-folder">
+                <Folder size={18} />
+                Seleccionar carpeta
+              </button>
+            </div>
+            {localFolderPath && (
+              <p className="setting-help success">
+                ✓ Carpeta configurada. Las imágenes se cargarán desde esta ubicación.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="info-box">
+          <p><strong>ℹ️ Sobre las fuentes</strong></p>
+          <ul>
+            <li><strong>Waifu.pics:</strong> Imágenes curadas por categoría, calidad consistente.</li>
+            <li><strong>Safebooru:</strong> Búsqueda por personaje específico, gran variedad.</li>
+            <li><strong>Nekos.best:</strong> Enfocado en nekos y waifus, incluye GIFs.</li>
+            <li><strong>Carpeta local:</strong> Usa tus propios fondos de pantalla.</li>
+          </ul>
         </div>
       </section>
 
