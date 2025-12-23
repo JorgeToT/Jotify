@@ -206,6 +206,63 @@ export class DatabaseManager {
     return result.length > 0 && result[0].values.length > 0
   }
 
+  getTrackByFilePath(filePath: string): Track | undefined {
+    if (!this.db) return undefined
+    
+    const result = this.db.exec('SELECT * FROM tracks WHERE filePath = ?', [filePath])
+    if (result.length === 0 || result[0].values.length === 0) return undefined
+    
+    return this.rowsToObjects(result[0])[0] as Track
+  }
+
+  updateTrackCoverArt(id: number, coverArt: string): void {
+    if (!this.db) throw new Error('Database not initialized')
+    
+    this.db.run('UPDATE tracks SET coverArt = ? WHERE id = ?', [coverArt, id])
+    this.saveDatabase()
+  }
+
+  updateTrackMetadata(id: number, updates: { title?: string; artist?: string; album?: string; year?: number }): void {
+    if (!this.db) throw new Error('Database not initialized')
+    
+    const setClauses: string[] = []
+    const values: any[] = []
+    
+    if (updates.title !== undefined) {
+      setClauses.push('title = ?')
+      values.push(updates.title)
+    }
+    if (updates.artist !== undefined) {
+      setClauses.push('artist = ?')
+      values.push(updates.artist)
+    }
+    if (updates.album !== undefined) {
+      setClauses.push('album = ?')
+      values.push(updates.album)
+    }
+    if (updates.year !== undefined) {
+      setClauses.push('year = ?')
+      values.push(updates.year)
+    }
+    
+    if (setClauses.length === 0) return
+    
+    values.push(id)
+    this.db.run(`UPDATE tracks SET ${setClauses.join(', ')} WHERE id = ?`, values)
+    this.saveDatabase()
+  }
+
+  getTracksWithoutCoverArt(): Track[] {
+    if (!this.db) return []
+    
+    const result = this.db.exec(
+      `SELECT * FROM tracks WHERE coverArt IS NULL OR coverArt = '' ORDER BY artist, album, trackNumber`
+    )
+    if (result.length === 0) return []
+    
+    return this.rowsToObjects(result[0]) as Track[]
+  }
+
   // Playlist operations
   createPlaylist(name: string, description?: string): number {
     if (!this.db) throw new Error('Database not initialized')
@@ -283,6 +340,13 @@ export class DatabaseManager {
     )
     
     this.updatePlaylistTimestamp(playlistId)
+    this.saveDatabase()
+  }
+
+  deleteTrack(id: number): void {
+    if (!this.db) throw new Error('Database not initialized')
+    
+    this.db.run('DELETE FROM tracks WHERE id = ?', [id])
     this.saveDatabase()
   }
 
