@@ -3,12 +3,18 @@
   "productName": "Jotify",
   "copyright": "Copyright © 2025 Jorge",
   "directories": {
-    "output": "out"
+    "output": "../JotifyBuild"
   },
   "files": [
     "dist/**/*",
     "node_modules/**/*",
     "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "node_modules/sql.js/dist/sql-wasm.wasm",
+      "to": "sql-wasm.wasm"
+    }
   ],
   "win": {
     "target": [

@@ -9,7 +9,18 @@ import { MusicBrainzService } from './musicbrainzService'
 import { parseFile } from 'music-metadata'
 import fs from 'fs'
 
-const __dirname = app.getAppPath()
+// Determinar el directorio correcto para recursos
+// En desarrollo: electron/ folder
+// En producción: dentro del asar en dist/electron/
+const isDev = process.env.NODE_ENV === 'development'
+const getResourcePath = () => {
+  if (isDev) {
+    return path.join(app.getAppPath(), 'electron')
+  }
+  // En producción, app.getAppPath() apunta a resources/app.asar
+  // y main.js está en dist/electron/ dentro del asar
+  return path.join(app.getAppPath(), 'dist', 'electron')
+}
 
 let mainWindow: BrowserWindow | null = null
 let dbManager: DatabaseManager
@@ -34,6 +45,8 @@ interface AppSettings {
 }
 
 function createWindow() {
+  const resourcePath = getResourcePath()
+  
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -42,17 +55,18 @@ function createWindow() {
     frame: true,
     backgroundColor: '#121212',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(resourcePath, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
 
-  if (process.env.NODE_ENV === 'development') {
+  if (isDev) {
     mainWindow.loadURL('http://localhost:5173')
     mainWindow.webContents.openDevTools()
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../index.html'))
+    // En producción, index.html está en dist/ (un nivel arriba de dist/electron/)
+    mainWindow.loadFile(path.join(app.getAppPath(), 'dist', 'index.html'))
   }
 
   mainWindow.on('closed', () => {

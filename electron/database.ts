@@ -1,4 +1,6 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js'
+import { app } from 'electron'
+import path from 'path'
 import fs from 'fs'
 
 export interface Track {
@@ -46,16 +48,18 @@ export class DatabaseManager {
 
   private async initializeDatabase() {
     try {
+      const isDev = process.env.NODE_ENV === 'development'
+      
       // Initialize sql.js with proper config for Electron
       this.SQL = await initSqlJs({
         locateFile: (file: string) => {
-          // In development, use node_modules path
-          if (process.env.NODE_ENV === 'development') {
-            const path = require('path')
+          if (isDev) {
+            // In development, use node_modules path
             return path.join(process.cwd(), 'node_modules', 'sql.js', 'dist', file)
           }
-          // In production, files should be in the app's resources
-          return file
+          // In production, wasm file is in resources folder (extraResources)
+          // process.resourcesPath points to resources/ folder in packaged app
+          return path.join(process.resourcesPath, file)
         }
       })
     } catch (error) {
