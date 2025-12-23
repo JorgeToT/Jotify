@@ -94,6 +94,15 @@ contextBridge.exposeInMainWorld('electron', {
   anime: {
     getRandomImage: () => ipcRenderer.invoke('anime:getRandomImage'),
     getMultipleImages: (count: number) => ipcRenderer.invoke('anime:getMultipleImages', count),
+    getSafebooruImages: (tags: string[], count?: number) => 
+      ipcRenderer.invoke('anime:getSafebooruImages', tags, count),
+    getNekosBestImages: (categories: string[], count?: number) => 
+      ipcRenderer.invoke('anime:getNekosBestImages', categories, count),
+    getWaifuPicsImages: (categories: string[], count?: number) => 
+      ipcRenderer.invoke('anime:getWaifuPicsImages', categories, count),
+    selectLocalFolder: () => ipcRenderer.invoke('anime:selectLocalFolder'),
+    getLocalImages: (folderPath: string, count?: number) => 
+      ipcRenderer.invoke('anime:getLocalImages', folderPath, count),
   },
 
   // Shell

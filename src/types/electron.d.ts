@@ -103,6 +103,11 @@ export interface ElectronAPI {
   anime: {
     getRandomImage: () => Promise<{ success: boolean; url?: string; error?: string }>
     getMultipleImages: (count: number) => Promise<{ success: boolean; images?: string[]; error?: string }>
+    getSafebooruImages: (tags: string[], count?: number) => Promise<{ success: boolean; images: string[]; error?: string }>
+    getNekosBestImages: (categories: string[], count?: number) => Promise<{ success: boolean; images: string[]; error?: string }>
+    getWaifuPicsImages: (categories: string[], count?: number) => Promise<{ success: boolean; images: string[]; error?: string }>
+    selectLocalFolder: () => Promise<{ success: boolean; path: string | null }>
+    getLocalImages: (folderPath: string, count?: number) => Promise<{ success: boolean; images: string[]; error?: string }>
   }
 
   library: {

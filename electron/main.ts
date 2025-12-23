@@ -672,6 +672,148 @@ function setupIpcHandlers() {
     }
   })
 
+  // Obtener imágenes de Safebooru (sin CORS)
+  ipcMain.handle('anime:getSafebooruImages', async (_, tags: string[], count: number = 20) => {
+    try {
+      const images: string[] = []
+      if (tags.length === 0) return { success: true, images }
+      
+      // Hacer múltiples peticiones con diferentes tags para más variedad
+      const shuffledTags = [...tags].sort(() => Math.random() - 0.5)
+      const requestsPerTag = Math.ceil(count / tags.length)
+      
+      for (const tag of shuffledTags) {
+        const randomPage = Math.floor(Math.random() * 50) // Más páginas para más variedad
+        const url = `https://safebooru.org/index.php?page=dapi&s=post&q=index&json=1&limit=${requestsPerTag}&pid=${randomPage}&tags=${encodeURIComponent(tag)}+rating:safe`
+        
+        try {
+          const response = await fetch(url)
+          const data = await response.json()
+          
+          if (Array.isArray(data)) {
+            // Mezclar los resultados de cada tag
+            const shuffledData = [...data].sort(() => Math.random() - 0.5)
+            for (const post of shuffledData) {
+              if (post.image && post.directory) {
+                const imageUrl = `https://safebooru.org/images/${post.directory}/${post.image}`
+                if (!images.includes(imageUrl)) {
+                  images.push(imageUrl)
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Ignorar errores individuales
+        }
+      }
+      
+      // Mezclar todas las imágenes finales
+      const shuffledImages = [...images].sort(() => Math.random() - 0.5)
+      return { success: true, images: shuffledImages }
+    } catch (error) {
+      console.error('Error fetching from Safebooru:', error)
+      return { success: false, error: (error as Error).message, images: [] }
+    }
+  })
+
+  // Obtener imágenes de Nekos.best
+  ipcMain.handle('anime:getNekosBestImages', async (_, categories: string[], count: number = 10) => {
+    try {
+      const images: string[] = []
+      if (categories.length === 0) return { success: true, images }
+      
+      for (let i = 0; i < Math.min(count, 20); i++) {
+        const category = categories[i % categories.length]
+        try {
+          const response = await fetch(`https://nekos.best/api/v2/${category}`)
+          const data = await response.json()
+          
+          if (data.results && Array.isArray(data.results)) {
+            for (const result of data.results) {
+              if (result.url) {
+                images.push(result.url)
+              }
+            }
+          }
+        } catch (e) {
+          // Ignore individual errors
+        }
+      }
+      return { success: true, images }
+    } catch (error) {
+      console.error('Error fetching from Nekos.best:', error)
+      return { success: false, error: (error as Error).message, images: [] }
+    }
+  })
+
+  // Obtener imágenes de Waifu.pics por categorías
+  ipcMain.handle('anime:getWaifuPicsImages', async (_, categories: string[], count: number = 10) => {
+    try {
+      const images: string[] = []
+      if (categories.length === 0) return { success: true, images }
+      
+      for (let i = 0; i < count; i++) {
+        const category = categories[i % categories.length]
+        try {
+          const response = await fetch(`https://api.waifu.pics/sfw/${category}`)
+          const data = await response.json()
+          if (data.url) {
+            images.push(data.url)
+          }
+        } catch (e) {
+          // Ignore individual errors
+        }
+      }
+      return { success: true, images }
+    } catch (error) {
+      console.error('Error fetching from Waifu.pics:', error)
+      return { success: false, error: (error as Error).message, images: [] }
+    }
+  })
+
+  // Seleccionar carpeta de fondos locales
+  ipcMain.handle('anime:selectLocalFolder', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Seleccionar carpeta de fondos'
+    })
+    
+    if (result.canceled || !result.filePaths[0]) {
+      return { success: false, path: null }
+    }
+    
+    return { success: true, path: result.filePaths[0] }
+  })
+
+  // Obtener imágenes de una carpeta local
+  ipcMain.handle('anime:getLocalImages', async (_, folderPath: string, count: number = 30) => {
+    try {
+      if (!folderPath || !fs.existsSync(folderPath)) {
+        return { success: false, error: 'Carpeta no encontrada', images: [] }
+      }
+
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']
+      const files = fs.readdirSync(folderPath)
+      
+      const imageFiles = files.filter(file => {
+        const ext = path.extname(file).toLowerCase()
+        return validExtensions.includes(ext)
+      })
+
+      // Mezclar aleatoriamente
+      const shuffled = [...imageFiles].sort(() => Math.random() - 0.5)
+      const selected = shuffled.slice(0, count)
+      
+      // Convertir a rutas completas
+      const images = selected.map(file => path.join(folderPath, file))
+      
+      return { success: true, images }
+    } catch (error) {
+      console.error('Error reading local folder:', error)
+      return { success: false, error: (error as Error).message, images: [] }
+    }
+  })
+
   // Limpiar covers corruptos y buscar nuevos desde Cover Art Archive
   ipcMain.handle('library:fixCovers', async () => {
     try {
