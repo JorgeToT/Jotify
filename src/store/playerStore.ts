@@ -10,6 +10,7 @@ interface PlayerState {
   isMuted: boolean
   repeatMode: 'off' | 'all' | 'one'
   isShuffled: boolean
+  isAnimeMode: boolean
   queue: Track[]
   originalQueue: Track[]
   currentIndex: number
@@ -23,6 +24,7 @@ interface PlayerState {
   toggleMute: () => void
   setRepeatMode: (mode: 'off' | 'all' | 'one') => void
   toggleShuffle: () => void
+  setAnimeMode: (isAnimeMode: boolean) => void
   setQueue: (tracks: Track[], startIndex?: number) => void
   playNext: () => void
   playPrevious: () => void
@@ -39,6 +41,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isMuted: false,
   repeatMode: 'off',
   isShuffled: false,
+  isAnimeMode: false,
   queue: [],
   originalQueue: [],
   currentIndex: -1,
@@ -52,6 +55,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
 
   setRepeatMode: (mode) => set({ repeatMode: mode }),
+
+  setAnimeMode: (isAnimeMode) => set({ isAnimeMode }),
 
   toggleShuffle: () => {
     const state = get()
@@ -84,13 +89,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     queue: tracks, 
     originalQueue: [],
     isShuffled: false,
-    currentIndex: startIndex 
+    currentIndex: startIndex,
+    currentTrack: tracks[startIndex] || null
   }),
 
   playNext: () => {
-    const { queue, currentIndex, repeatMode } = get()
+    const { queue, currentIndex, repeatMode, isAnimeMode } = get()
     
-    if (repeatMode === 'one') {
+    // En modo anime, siempre repetir la misma canción
+    if (isAnimeMode || repeatMode === 'one') {
       set({ currentTime: 0 })
       return
     }
