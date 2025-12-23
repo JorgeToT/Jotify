@@ -270,3 +270,26 @@
 .link-button:hover {
   color: var(--accent-hover);
 }
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.info-box.success {
+  border-left: 3px solid var(--accent-primary);
+  background-color: rgba(29, 185, 84, 0.1);
+}
+
+.info-box.success ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.info-box.success li {
+  margin: 4px 0;
+}

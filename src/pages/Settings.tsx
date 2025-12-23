@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Settings as SettingsIcon, Music, ExternalLink, Check, X } from 'lucide-react'
+import { Settings as SettingsIcon, Music, ExternalLink, Check, X, Image, Loader } from 'lucide-react'
+import { useLibraryStore } from '../store/libraryStore'
 import './Settings.css'
 
 export default function Settings() {
@@ -8,6 +9,10 @@ export default function Settings() {
   const [downloadPath, setDownloadPath] = useState('')
   const [ytDlpInstalled, setYtDlpInstalled] = useState(false)
   const [scrobbleEnabled, setScrobbleEnabled] = useState(true)
+  const [isFixingCovers, setIsFixingCovers] = useState(false)
+  const [fixCoversResult, setFixCoversResult] = useState<{ fixed: number; failed: number; total: number } | null>(null)
+  
+  const { loadTracks } = useLibraryStore()
 
   useEffect(() => {
     loadSettings()
@@ -91,6 +96,34 @@ export default function Settings() {
         scrobbleEnabled: newValue,
       }
     })
+  }
+
+  const handleFixCovers = async () => {
+    setIsFixingCovers(true)
+    setFixCoversResult(null)
+    
+    try {
+      const result = await window.electron.fixCovers()
+      if (result.success) {
+        setFixCoversResult({
+          fixed: result.fixed || 0,
+          failed: result.failed || 0,
+          total: result.total || 0
+        })
+        
+        // Recargar la biblioteca para mostrar los nuevos covers
+        if (result.fixed && result.fixed > 0) {
+          await loadTracks()
+        }
+      } else {
+        alert(`Error: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error fixing covers:', error)
+      alert('Error al arreglar covers')
+    } finally {
+      setIsFixingCovers(false)
+    }
   }
 
   return (
@@ -242,6 +275,66 @@ export default function Settings() {
           <p>
             Recomendamos descargar en <strong>OPUS</strong> o <strong>M4A</strong> para mantener 
             la calidad original sin conversiones innecesarias.
+          </p>
+        </div>
+      </section>
+
+      {/* Cover Art Section */}
+      <section className="settings-section">
+        <div className="section-header">
+          <h2>
+            <Image size={24} />
+            Carátulas de Álbumes
+          </h2>
+          <p className="section-description">
+            Busca y descarga carátulas faltantes desde Cover Art Archive (MusicBrainz).
+          </p>
+        </div>
+
+        <div className="setting-item">
+          <button 
+            onClick={handleFixCovers} 
+            className="btn-primary"
+            disabled={isFixingCovers}
+          >
+            {isFixingCovers ? (
+              <>
+                <Loader size={16} className="spinning" />
+                Buscando carátulas...
+              </>
+            ) : (
+              <>
+                <Image size={16} />
+                Buscar y descargar carátulas faltantes
+              </>
+            )}
+          </button>
+          
+          {isFixingCovers && (
+            <p className="setting-help">
+              Este proceso puede tardar varios minutos. Las carátulas se buscan en Cover Art Archive.
+            </p>
+          )}
+
+          {fixCoversResult && (
+            <div className="info-box success">
+              <p><strong>✅ Proceso completado</strong></p>
+              <ul>
+                <li>Tracks analizados: {fixCoversResult.total}</li>
+                <li>Carátulas encontradas: {fixCoversResult.fixed}</li>
+                <li>No encontradas: {fixCoversResult.failed}</li>
+              </ul>
+              <p>Recarga la biblioteca para ver los cambios.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="info-box">
+          <p><strong>ℹ️ Sobre las carátulas</strong></p>
+          <p>
+            Las carátulas se buscan en <strong>Cover Art Archive</strong>, la base de datos de 
+            carátulas de MusicBrainz. Si una canción no tiene carátula disponible, se mostrará 
+            una imagen de anime como fallback.
           </p>
         </div>
       </section>
