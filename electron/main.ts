@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, protocol } from 'electron'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { DatabaseManager } from './database'
 import { MusicScanner } from './musicScanner'
 import { PlaylistManager } from './playlistManager'
@@ -10,8 +9,7 @@ import { MusicBrainzService } from './musicbrainzService'
 import { parseFile } from 'music-metadata'
 import fs from 'fs'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = app.getAppPath()
 
 let mainWindow: BrowserWindow | null = null
 let dbManager: DatabaseManager
