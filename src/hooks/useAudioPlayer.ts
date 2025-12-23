@@ -3,24 +3,104 @@ import { usePlayerStore } from '../store/playerStore'
 
 export const audioRef = { current: null as HTMLAudioElement | null }
 
+// Umbral de silencio en dB (más negativo = más silencioso)
+const SILENCE_THRESHOLD = 0.01 // Nivel de amplitud considerado silencio
+const SILENCE_CHECK_INTERVAL = 0.05 // Cada 50ms revisar el audio
+const MAX_SILENCE_SKIP = 10 // Máximo segundos a saltar al inicio
+
 export const useAudioPlayer = () => {
   const scrobbledRef = useRef<boolean>(false)
   const nowPlayingUpdatedRef = useRef<boolean>(false)
+  const silenceCheckedRef = useRef<boolean>(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
   
   const {
     currentTrack,
     isPlaying,
     volume,
     isMuted,
+    isAnimeMode,
     setIsPlaying,
     setCurrentTime,
     setDuration,
     playNext,
   } = usePlayerStore()
 
+  // Función para detectar si el audio actual es silencio
+  const isCurrentlySilent = (): boolean => {
+    if (!analyserRef.current) return false
+    
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+    analyserRef.current.getByteFrequencyData(dataArray)
+    
+    // Calcular el promedio de amplitud
+    const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length
+    const normalized = average / 255 // Normalizar a 0-1
+    
+    return normalized < SILENCE_THRESHOLD
+  }
+
+  // Función para saltar el silencio inicial
+  const skipInitialSilence = async () => {
+    if (!audioRef.current || silenceCheckedRef.current) return
+    
+    const startTime = audioRef.current.currentTime
+    let silenceEnd = startTime
+    
+    // Solo revisar si estamos al inicio (primeros 2 segundos)
+    if (startTime > 2) {
+      silenceCheckedRef.current = true
+      return
+    }
+    
+    // Buscar dónde termina el silencio
+    const checkSilence = () => {
+      if (!audioRef.current) return
+      
+      if (audioRef.current.currentTime >= MAX_SILENCE_SKIP) {
+        // No saltar más de MAX_SILENCE_SKIP segundos
+        silenceCheckedRef.current = true
+        return
+      }
+      
+      if (isCurrentlySilent()) {
+        silenceEnd = audioRef.current.currentTime
+        // Seguir adelantando
+        audioRef.current.currentTime += SILENCE_CHECK_INTERVAL
+        requestAnimationFrame(checkSilence)
+      } else {
+        // Encontramos audio, marcar como revisado
+        silenceCheckedRef.current = true
+        if (silenceEnd > startTime + 0.5) {
+          console.log(`[AudioPlayer] Silencio inicial detectado, saltando ${silenceEnd.toFixed(2)}s`)
+          audioRef.current.currentTime = silenceEnd
+        }
+      }
+    }
+    
+    // Esperar un poco a que el analyser tenga datos
+    setTimeout(() => {
+      if (audioRef.current && isPlaying) {
+        checkSilence()
+      }
+    }, 100)
+  }
+
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio()
+      
+      // Crear AudioContext para análisis de audio
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      analyserRef.current = audioContextRef.current.createAnalyser()
+      analyserRef.current.fftSize = 256
+      
+      // Conectar el elemento de audio al analyser
+      sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current)
+      sourceNodeRef.current.connect(analyserRef.current)
+      analyserRef.current.connect(audioContextRef.current.destination)
       
       // Setup event listeners
       audioRef.current.addEventListener('loadedmetadata', () => {
@@ -29,13 +109,18 @@ export const useAudioPlayer = () => {
 
       audioRef.current.addEventListener('timeupdate', handleTimeUpdate)
 
-      audioRef.current.addEventListener('ended', () => {
-        playNext()
-      })
+      audioRef.current.addEventListener('ended', handleTrackEnded)
 
       audioRef.current.addEventListener('error', (e) => {
         console.error('Audio error:', e)
         setIsPlaying(false)
+      })
+      
+      // Detectar silencio cuando empieza a reproducir
+      audioRef.current.addEventListener('playing', () => {
+        if (!silenceCheckedRef.current) {
+          skipInitialSilence()
+        }
       })
     }
 
@@ -44,8 +129,26 @@ export const useAudioPlayer = () => {
         audioRef.current.pause()
         audioRef.current = null
       }
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
     }
   }, [])
+
+  // Manejar cuando la canción termina
+  const handleTrackEnded = () => {
+    const state = usePlayerStore.getState()
+    if (state.isAnimeMode) {
+      // En modo anime, reiniciar la canción
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0
+        audioRef.current.play()
+      }
+    } else {
+      // Modo normal, ir a la siguiente
+      playNext()
+    }
+  }
 
   // Handle time update and Last.fm scrobbling
   const handleTimeUpdate = async () => {
@@ -91,6 +194,12 @@ export const useAudioPlayer = () => {
       // Reset scrobble flags
       scrobbledRef.current = false
       nowPlayingUpdatedRef.current = false
+      silenceCheckedRef.current = false // Reset silence check para nueva canción
+      
+      // Resumir AudioContext si estaba suspendido (política de autoplay)
+      if (audioContextRef.current?.state === 'suspended') {
+        audioContextRef.current.resume()
+      }
       
       // Use local-file:// protocol for local files in Electron
       const audioUrl = `local-file://${encodeURIComponent(currentTrack.filePath)}`
